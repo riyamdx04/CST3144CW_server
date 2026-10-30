@@ -9,7 +9,7 @@ app.use(cors());
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
 
 //getting all the subjects displayed
-let classes = require('.../test/test/VueJS/products.js');
+let classes = require('../../test/test/VueJS/products.js');
 console.log(classes);
 app.get("/lessons", function(req,res){
     res.json(classes);
