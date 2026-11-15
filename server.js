@@ -12,13 +12,12 @@ let DbTuition;
 app.use(cors());
 app.use(express.json());
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
-//array for orders and products
-// let orders=[];
 
 //const uri = `mongodb+srv://riyamdx04_db_user:BSC3c55e@cluster0.rhekonx.mongodb.net/`;
+
 //loading the config from .env file to process
 require("dotenv").config({ path: path.resolve(__dirname,'config.env')});
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const uri = 
 process.env.MONGODB_PREFIX +
 encodeURIComponent(process.env.MONGODB_USERNAME) + ":" +
@@ -41,13 +40,10 @@ async function connectToDb(){
 connectToDb();
 
 //get method to retrieve all the subjects displayed
-// console.log(classes);
 app.get(`/${StudentID}/lessons`, async function(req,res, next){
     try{    
     const results =await DbTuition.collection('products').find({}).toArray();
     res.json(results);
-    //console.log(results);
-    // res.send(results);
     }
     catch(error){
         console.log("cannot obtain the collection data from DB: ", error)
@@ -57,10 +53,12 @@ app.get(`/${StudentID}/lessons`, async function(req,res, next){
 //taking the input for searching subject names
 app.get(`/${StudentID}/lessons/search`, async (req,res) =>{
     const searchTerm = (req.query.q).toLowerCase().trim();
+
     //if search field is empty, all the classes will be displayed
     if(!searchTerm){
         return res.json(classes);
     };
+
     //creating results constant with in-built filters
     const results = classes.filter(c=>
         c.SubjectName.toLowerCase().includes(searchTerm) ||
@@ -84,8 +82,20 @@ app.post(`/${StudentID}/lessons/orders`, async function(req,res){
 });
 
 //PUT method to change and update available spaces 
-app.put(`/${StudentID}/lessons/:id`, async (req,res) =>{
-    res.send("update the available seats")
+app.put(`/${StudentID}/lessons/:_id`, async (req,res) =>{
+    let collection = await DbTuition.collection("products");
+    const updateSeat = {...req.body};
+    delete updateSeat._id;
+    const query = {_id: new ObjectId(req.params._id)};
+
+    //update only one document logged in mongoDB
+    const updates= {
+        $set: updateSeat
+    }
+
+    result= await collection.updateOne(query, updates)
+    console.log('Update operation result: ', result);
+    res.json((result.matchedCount===1) ? {msg:'success'}:{msg:'error'})
 });
 
 //section to upload image as static files
