@@ -51,22 +51,30 @@ app.get(`/${StudentID}/lessons`, async function(req,res, next){
 });
 
 //taking the input for searching subject names
-app.get(`/${StudentID}/lessons/search`, async (req,res) =>{
+app.get(`/${StudentID}/lessons/search`, async (req,res,next) =>{
+     try {
     const searchTerm = (req.query.q).toLowerCase().trim();
 
-    //if search field is empty, all the classes will be displayed
-    if(!searchTerm){
-        return res.json(classes);
-    };
+    //get lessons form the database
+    const lessons = await DbTuition.collection("products").find({}).toArray();
 
-    //creating results constant with in-built filters
-    const results = classes.filter(c=>
+    //checking if search field is empty, if true => then all lessons available are displayed
+    if(!searchTerm){
+        return res.json(lessons);
+    }
+
+    //creating results for each possible filters (subjectname, location, price)
+    const results = lessons.filter(c=>
         c.SubjectName.toLowerCase().includes(searchTerm) ||
-        c.Location.toLowerCase().includes(searchTerm) ||
-        String(c.Price.includes(searchTerm))
+        c.Location.toLowerCase().includes(searchTerm)
     );
     res.json(results);
+    }
+    catch(err){
+        console.log("search Failed: ", err);
+    }
 }); 
+
 //POST method for orders placed by user
 app.post(`/${StudentID}/lessons/orders`, async function(req,res){
     try{
