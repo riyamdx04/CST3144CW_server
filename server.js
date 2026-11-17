@@ -66,7 +66,9 @@ app.get(`/${StudentID}/lessons/search`, async (req,res,next) =>{
     //creating results for each possible filters (subjectname, location, price)
     const results = lessons.filter(c=>
         c.SubjectName.toLowerCase().includes(searchTerm) ||
-        c.Location.toLowerCase().includes(searchTerm)
+        c.Location.toLowerCase().includes(searchTerm) ||
+        String(c.Price).includes(searchTerm) ||
+        String(c.AvailableSeats).includes(searchTerm)
     );
     res.json(results);
     }
@@ -106,6 +108,17 @@ app.put(`/${StudentID}/lessons/:_id`, async (req,res) =>{
     res.json((result.matchedCount===1) ? {msg:'success'}:{msg:'error'})
 });
 
+//CHALLENGE: Teachers table
+//get method to retrieve all the subjects displayed
+app.get(`/${StudentID}/teachers`, async function(req,res, next){
+    try{    
+    const results =await DbTuition.collection('teachers').find({}).toArray();
+    res.json(results);
+    }
+    catch(error){
+        console.log("cannot obtain the teachers collection data from DB: ", error)
+    }
+});
 //section to upload image as static files
 // var publicPath = path.resolve(__dirname, StaticFiles);
 // app.use("/folderName", express.static(publicPath));
